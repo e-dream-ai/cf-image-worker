@@ -15,24 +15,30 @@ A Cloudflare Worker that serves and transforms images and video for the [Infinid
 
 Generated dreams, thumbnails, and filmstrips are written to R2 by the backend and video services. `cf-image-worker` is the read path: the frontend and native clients fetch signed URLs routed through this worker, which either streams the raw bytes, serves a byte range, or returns a resized/reformatted variant.
 
-## Configuration
+## Build & deploy
 
-| Setting | Where | Purpose |
-|---|---|---|
-| `BUCKET` | R2 binding in `wrangler.toml` | The R2 bucket holding source media |
-| `SIGNING_SECRET` | Worker secret (`wrangler secret put SIGNING_SECRET`) | HMAC key used to verify the `sig` query parameter |
-
-The current `wrangler.toml` deploys as `image-worker-stage`. Production deployment is managed separately.
-
-## Development
+The worker is a single vanilla JS file (`src/worker.js`) with no build step — Wrangler bundles and uploads it directly.
 
 ```bash
 npm install
-npm run dev       # wrangler dev — local worker with R2 binding
-npm run deploy    # wrangler deploy
+npm run dev       # wrangler dev — local development
+npm run deploy    # wrangler deploy — push to Cloudflare
 ```
 
 You'll need `wrangler` authenticated against the Cloudflare account that owns the R2 bucket.
+
+### Bindings & secrets (set manually in Cloudflare)
+
+The R2 bucket binding and the signing secret **must be configured manually** in the Cloudflare dashboard (Workers & Pages → Settings) or via the Wrangler CLI — they are not committed to the repo.
+
+| Setting | Type | How to set | Purpose |
+|---|---|---|---|
+| `BUCKET` | R2 binding | Dashboard: Workers → Settings → R2 Bucket Bindings, or define `bucket_name` in `wrangler.toml` | The R2 bucket holding source media |
+| `SIGNING_SECRET` | Secret | `wrangler secret put SIGNING_SECRET` or Dashboard: Workers → Settings → Variables & Secrets | HMAC key used to verify the `sig` query parameter |
+
+The `wrangler.toml` ships with `bucket_name = "<FILL_IN>"` as a placeholder — replace it with the actual bucket name for local dev, or rely on the dashboard binding for deployed environments.
+
+The current `wrangler.toml` deploys as `image-worker-stage`. Production deployment is managed separately.
 
 ## URL shape
 

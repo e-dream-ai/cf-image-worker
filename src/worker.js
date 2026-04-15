@@ -114,11 +114,26 @@ export default {
 				},
 			});
 
-			const headers = new Headers(response.headers);
-			headers.set('Cache-Control', 'public, max-age=86400');
-			return new Response(response.body, {
-				status: response.status,
-				headers,
+			if (response.ok) {
+				const headers = new Headers(response.headers);
+				headers.set('Cache-Control', 'public, max-age=86400');
+				return new Response(response.body, {
+					status: response.status,
+					headers,
+				});
+			}
+
+			const object = await env.BUCKET.get(key);
+			if (!object) {
+				return new Response('Not Found', { status: 404 });
+			}
+			return new Response(object.body, {
+				headers: {
+					'Content-Type': object.httpMetadata?.contentType || inferContentType(key),
+					'Accept-Ranges': 'bytes',
+					'Cache-Control': 'public, max-age=86400',
+					'Content-Length': object.size.toString(),
+				},
 			});
 		}
 
