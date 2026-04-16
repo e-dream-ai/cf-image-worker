@@ -32,11 +32,10 @@ You'll need `wrangler` authenticated against the Cloudflare account that owns th
 
 Three environments are defined in `wrangler.toml`, each with its own Worker name and R2 bucket:
 
-| Env   | Worker name          | R2 bucket                               |
-| ----- | -------------------- | --------------------------------------- |
-| alpha | `image-worker-alpha` | `edream-storage-dreams-alpha`           |
-| stage | `image-worker-stage` | `edream-storage-dreams-staging`         |
-| prod  | `image-worker`       | _(configure root r2 bucket when ready)_ |
+| Env   | Worker name          | R2 bucket                       |
+| ----- | -------------------- | ------------------------------- |
+| alpha | `image-worker-alpha` | `edream-storage-dreams-alpha`   |
+| stage | `image-worker-stage` | `edream-storage-dreams-staging` |
 
 Cloudflare's built-in CI deploys automatically on every commit push. The deploy command is configured per environment in the Worker's Build settings in the dashboard.
 
@@ -47,7 +46,6 @@ The signing secret **must be configured per environment** via the Wrangler CLI â
 ```bash
 wrangler secret put SIGNING_SECRET --env alpha
 wrangler secret put SIGNING_SECRET --env stage
-wrangler secret put SIGNING_SECRET             # prod
 ```
 
 | Setting          | Type       | Purpose                                                                 |
