@@ -1,4 +1,4 @@
-name = "image-worker-stage"
+name = "image-worker"
 main = "src/worker.js"
 workers_dev = true
 preview_urls = false
@@ -6,8 +6,32 @@ compatibility_date = "2025-09-06"
 
 [[r2_buckets]]
 binding = "BUCKET"
-bucket_name = "<FILL_IN>"
+bucket_name = "<FILL_IN_PROD>"
 
 [observability]
+enabled = true
+head_sampling_rate = 1
+
+[env.stage]
+name = "image-worker-stage"
+workers_dev = true
+
+[[env.stage.r2_buckets]]
+binding = "BUCKET"
+bucket_name = "edream-storage-dreams-staging"
+
+[env.stage.observability]
+enabled = true
+head_sampling_rate = 1
+
+[env.alpha]
+name = "image-worker-alpha"
+workers_dev = true
+
+[[env.alpha.r2_buckets]]
+binding = "BUCKET"
+bucket_name = "edream-storage-dreams-alpha"
+
+[env.alpha.observability]
 enabled = true
 head_sampling_rate = 1
