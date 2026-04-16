@@ -21,24 +21,39 @@ The worker is a single vanilla JS file (`src/worker.js`) with no build step — 
 
 ```bash
 npm install
-npm run dev       # wrangler dev — local development
-npm run deploy    # wrangler deploy — push to Cloudflare
+npm run dev                        # wrangler dev — local development
+npx wrangler deploy --env alpha    # deploy to alpha
+npx wrangler deploy --env stage    # deploy to stage
 ```
 
 You'll need `wrangler` authenticated against the Cloudflare account that owns the R2 bucket.
 
+### Environments
+
+Three environments are defined in `wrangler.toml`, each with its own Worker name and R2 bucket:
+
+| Env   | Worker name          | R2 bucket                               |
+| ----- | -------------------- | --------------------------------------- |
+| alpha | `image-worker-alpha` | `edream-storage-dreams-alpha`           |
+| stage | `image-worker-stage` | `edream-storage-dreams-staging`         |
+| prod  | `image-worker`       | _(configure root r2 bucket when ready)_ |
+
+Cloudflare's built-in CI deploys automatically on every commit push. The deploy command is configured per environment in the Worker's Build settings in the dashboard.
+
 ### Bindings & secrets (set manually in Cloudflare)
 
-The R2 bucket binding and the signing secret **must be configured manually** in the Cloudflare dashboard (Workers & Pages → Settings) or via the Wrangler CLI — they are not committed to the repo.
+The signing secret **must be configured per environment** via the Wrangler CLI — it is not committed to the repo.
 
-| Setting | Type | How to set | Purpose |
-|---|---|---|---|
-| `BUCKET` | R2 binding | Dashboard: Workers → Settings → R2 Bucket Bindings, or define `bucket_name` in `wrangler.toml` | The R2 bucket holding source media |
-| `SIGNING_SECRET` | Secret | `wrangler secret put SIGNING_SECRET` or Dashboard: Workers → Settings → Variables & Secrets | HMAC key used to verify the `sig` query parameter |
+```bash
+wrangler secret put SIGNING_SECRET --env alpha
+wrangler secret put SIGNING_SECRET --env stage
+wrangler secret put SIGNING_SECRET             # prod
+```
 
-The `wrangler.toml` ships with `bucket_name = "<FILL_IN>"` as a placeholder — replace it with the actual bucket name for local dev, or rely on the dashboard binding for deployed environments.
-
-The current `wrangler.toml` deploys as `image-worker-stage`. Production deployment is managed separately.
+| Setting          | Type       | Purpose                                                                 |
+| ---------------- | ---------- | ----------------------------------------------------------------------- |
+| `BUCKET`         | R2 binding | The R2 bucket holding source media — defined in `wrangler.toml` per env |
+| `SIGNING_SECRET` | Secret     | HMAC key used to verify the `sig` query parameter                       |
 
 ## URL shape
 
