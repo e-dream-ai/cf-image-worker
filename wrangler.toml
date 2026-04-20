@@ -1,4 +1,4 @@
-name = "image-worker"
+name = "image-worker-alpha"
 main = "src/worker.js"
 workers_dev = true
 preview_urls = false
