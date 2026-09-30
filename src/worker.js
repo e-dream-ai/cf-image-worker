@@ -43,8 +43,13 @@ export default {
 			return new Response('Missing key', { status: 400 });
 		}
 
-		if (key.startsWith('_raw/')) {
-			const rawKey = key.slice(5);
+		const rawKey = key.startsWith('_raw/') ? key.slice(5) : null;
+		const sig = url.searchParams.get('sig');
+		if (!sig || !(await verifySig(rawKey ?? key, sig, env.SIGNING_SECRET))) {
+			return new Response('Forbidden', { status: 403 });
+		}
+
+		if (rawKey !== null) {
 			const object = await env.BUCKET.get(rawKey);
 			if (!object) {
 				return new Response('Not Found', { status: 404 });
@@ -54,11 +59,6 @@ export default {
 					'Content-Type': object.httpMetadata?.contentType || inferContentType(rawKey),
 				},
 			});
-		}
-
-		const sig = url.searchParams.get('sig');
-		if (!sig || !(await verifySig(key, sig, env.SIGNING_SECRET))) {
-			return new Response('Forbidden', { status: 403 });
 		}
 
 		const width = parseInt(url.searchParams.get('w') || '0');
@@ -100,7 +100,8 @@ export default {
 		}
 
 		if (hasTransformParams) {
-			const rawUrl = new URL(url.origin + '/_raw/' + key);
+			const rawUrl = new URL(url.origin + '/_raw/' + encodeURIComponent(key));
+			rawUrl.searchParams.set('sig', sig);
 
 			const response = await fetch(rawUrl.toString(), {
 				cf: {

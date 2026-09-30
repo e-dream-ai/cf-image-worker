@@ -9,7 +9,7 @@ A Cloudflare Worker that serves and transforms images and video for the [Infinid
 - **Edge caching.** All responses carry `Cache-Control: public, max-age=86400`, so Cloudflare's CDN caches each `key + params` variant for 24 hours. Repeat requests for the same transformed image are served from the edge and never touch R2.
 - **Range request support.** `Range` headers are honored with `206 Partial Content` responses, so video seeking works directly against R2. Range requests bypass Image Resizing and stream the original object.
 - **Content-type inference.** MIME types are inferred from the file extension (jpg, png, webp, avif, mp4, webm, mov, …) when R2 metadata doesn't provide one.
-- **Internal raw path.** The `_raw/` prefix bypasses signature checking and is used internally by the transform path to fetch the source object before handing it to Image Resizing. It is not meant to be called directly by clients.
+- **Internal raw path.** The `_raw/` prefix serves the source object for Image Resizing and requires a valid `sig` for the underlying object key, without the `_raw/` prefix. Transform requests forward their verified signature to this endpoint.
 
 ## How it fits into Infinidream
 
